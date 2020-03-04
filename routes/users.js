@@ -5,7 +5,6 @@ const passport = require('passport');
 
 // Bring in User Model
 let User = require('../models/user');
-
 // Register Form
 router.get('/register', function(req, res){
   res.render('register');
@@ -21,21 +20,6 @@ router.post('/register', function(req, res){
   let institution = req.body.institution;
   let course = req.body.course;
   let interests = req.body.interests;
-
-  req.checkBody('name', 'Name is required').notEmpty();
-  req.checkBody('email', 'Email is required').notEmpty();
-  req.checkBody('email', 'Email is not valid').isEmail();
-  req.checkBody('username', 'Username is required').notEmpty();
-  req.checkBody('password', 'Password is required').notEmpty();
-  req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
-
-  let errors = req.validationErrors();
-
-  if(errors){
-    res.render('register', {
-      errors:errors
-    });
-  } else {
     let newUser = new User({
       name:name,
       email:email,
@@ -63,7 +47,6 @@ router.post('/register', function(req, res){
         });
       });
     });
-  }
 });
 
 // // Login Form
@@ -72,7 +55,7 @@ router.post('/register', function(req, res){
 // });
 
 // Login Process
-router.post('/login', function(req, res, next){
+router.post('/login' ,function(req, res, next){
   passport.authenticate('local',(err,user,info)=>{
     if (err) { return next(err); }
     if (!user) { return res.status(401).send("Unable To Login With Provided Credentials") }

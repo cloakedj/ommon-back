@@ -138,8 +138,7 @@ function ensureAuthenticated(req, res, next){
   if(req.isAuthenticated()){
     return next();
   } else {
-    req.flash('danger', 'Please login');
-    res.redirect('/users/login');
+    res.status(401).send("Please Login To Access These Resources!");
   }
 }
 

@@ -8,6 +8,7 @@ const session = require('express-session');
 const passport = require('passport');
 const config = require('./config/database');
 const cors = require("cors");
+const morgan = require("morgan");
 
 mongoose.connect(config.database);
 let db = mongoose.connection;
@@ -50,9 +51,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Express Session Middleware
 app.use(session({
   secret: 'keyboard cat',
-  resave: true,
-  saveUninitialized: true
+  resave: false,
+  saveUninitialized: true,
+  cookie:{
+    maxAge : 60000
+  }
 }));
+
+app.use(morgan('tiny'));
 
 // Express Messages Middleware
 app.use(require('connect-flash')());
@@ -86,7 +92,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('*', function(req, res, next){
+  console.log(req.session);
   res.locals.user = req.user || null;
+  console.log(res.locals.user);
   next();
 });
 
