@@ -1,20 +1,26 @@
 const express = require('express');
 const router = express.Router();
-
+const upload = require('./upload');
 // Event Model
 let Event = require('../models/event');
 // User Model
 let User = require('../models/user');
-let Timeline = require('../routes/timeline');
-// Add Route
-router.get('/add', ensureAuthenticated, function(req, res){
-  res.render('add_event', {
-    title:'Add Event'
+let Timeline = require('./timeline');
+//All Competitions
+router.get('/all', ensureAuthenticated, function(req, res){
+  Event.find({}, function(err, events){
+    if(err){
+      console.log(err);
+    } else {
+      res.status(200).send({
+        events: events
+      });
+    }
   });
 });
 
 // Add Submit POST Route
-router.post('/add', function(req, res){
+router.post('/add', upload.single('cover'),function(req, res){
   req.checkBody('event','Name is required').notEmpty();
   //req.checkBody('organiser','organiser is required').notEmpty();
   req.checkBody('info','Information is required').notEmpty();
@@ -37,6 +43,7 @@ router.post('/add', function(req, res){
     event.status = req.body.status;
     event.time = req.body.time;
     event.tags = req.body.tags.split(',');
+    event.cover = "http://localhost:3000/images/" + req.file.filename;
 
     event.save(function(err,doc){
       if(err){
@@ -48,7 +55,7 @@ router.post('/add', function(req, res){
           req.user._id,
           `You Have Successfully Added An Event with the name ${event.event}`,
           "Congratulations",
-          1
+          5
         )
         req.flash('success','event Added');
         res.redirect('/');
@@ -152,9 +159,9 @@ router.delete('/:id', function(req, res){
 router.get('/:id', function(req, res){
   Event.findById(req.params.id, function(err, event){
     User.findById(event.organiser, function(err, user){
-      res.render('event', {
+      res.status(200).send({
         event:event,
-        organiser: user.name
+        organiser: user
       });
     });
   });

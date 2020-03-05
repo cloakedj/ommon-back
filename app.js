@@ -36,17 +36,19 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(cors({
-  origin: 'http://localhost:4200'
+  origin: 'http://localhost:4200',
+  credentials : true
 }));
 
 // Body Parser Middleware
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:'50mb'}));
 
 // Set Public Folder
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/public')));
+
 
 // Express Session Middleware
 app.use(session({
@@ -54,7 +56,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie:{
-    maxAge : 60000
+    maxAge : 6000000
   }
 }));
 
@@ -94,7 +96,7 @@ app.use(passport.session());
 app.get('*', function(req, res, next){
   console.log(req.session);
   res.locals.user = req.user || null;
-  console.log(res.locals.user);
+  console.log("id: ",req.user._id);
   next();
 });
 

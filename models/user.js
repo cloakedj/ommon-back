@@ -34,6 +34,9 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  logo:{
+    type : String
+  },
   eventId:[{
     type: String,
     required: false

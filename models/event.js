@@ -30,6 +30,9 @@ let eventSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  cover:{
+    type:String
+  },
   datenow:{
     type: Date,
     default: Date.now()

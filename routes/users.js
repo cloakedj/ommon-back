@@ -2,21 +2,23 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
+const upload = require('./upload');
+const Timeline = require('./timeline');
 
 // Bring in User Model
 let User = require('../models/user');
+
 // Register Form
 router.get('/register', function(req, res){
   res.render('register');
 });
 
 // Register Proccess
-router.post('/register', function(req, res){
+router.post('/register', upload.single('logo'),function(req, res){
   const name = req.body.name;
   const email = req.body.email;
   const username = req.body.username;
   const password = req.body.password;
-  const password2 = req.body.password2;
   let institution = req.body.institution;
   let course = req.body.course;
   let interests = req.body.interests;
@@ -27,7 +29,8 @@ router.post('/register', function(req, res){
       password:password,
       institution:institution,
       course:course,
-      interests:interests
+      logo: "http://localhost:3000/images/" +req.file.filename, 
+      interests:interests,
     });
 
     bcrypt.genSalt(10, function(err, salt){
@@ -41,8 +44,15 @@ router.post('/register', function(req, res){
             console.log(err);
             return;
           } else {
+            Timeline.addTimelineEvent(
+              doc._id,
+              req.user._id,
+              `Welcome ${req.user.username}. You Have Successfully Registered On Ommon.Com.`,
+              "Welcome Aboard!",
+              20
+            )
             req.flash('success','You are now registered and can log in');
-            res.redirect('/users/login');
+            res.status(200).send("Successfully Created user");
           }
         });
       });
@@ -74,7 +84,7 @@ router.get('/timeline',async function(req,res){
   user.timeline.forEach(element => {
     timeline.push(element._doc);
   });
-  res.render("timeline",{timeline : timeline});
+  res.status(200).send({timeline : timeline});
   }
   catch(err){
     console.log(err);

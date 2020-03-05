@@ -5,6 +5,8 @@ const router = express.Router();
 let Comp = require('../models/comp');
 // User Model
 let User = require('../models/user');
+const upload = require('./upload');
+const Timeline = require('./timeline');
 
 //All Competitions
 router.get('/all', ensureAuthenticated, function(req, res){
@@ -32,13 +34,20 @@ router.get('/attend/:id', ensureAuthenticated, function(req, res){
     { $addToSet: { participants:req.user._id }} , {
     new: true },(err,doc)=>{
       if (err) throw err;
+      Timeline.addTimelineEvent(
+        doc._id,
+        req.user._id,
+        `You Have Successfully Signed Up For A Competition with the name ${doc.comp}`,
+        "All The Best!",
+        1
+      )
       console.log('Attender Added:', req.user._id);
       res.redirect('/comps/'+req.params.id);
     });
 });
 
 // Add Submit POST Route
-router.post('/add', function(req, res){
+router.post('/add', upload.single('cover'),ensureAuthenticated,function(req, res){
     let comp = new Comp();
     comp.comp = req.body.comp;
     comp.organiser = req.user._id;
@@ -49,14 +58,22 @@ router.post('/add', function(req, res){
     comp.time = req.body.time;
     //comp.participants = req.body.participants.split('\n');
     comp.tags = req.body.tags.split(',');
+    comp.cover = "http://localhost:3000/images/"+req.file.filename;
 
     comp.save(function(err){
       if(err){
         console.log(err);
         return;
       } else {
+        Timeline.addTimelineEvent(
+          doc._id,
+          req.user._id,
+          `You Have Successfully Added A Competition with the name ${comp.comp}`,
+          "Congratulations",
+          5
+        )
         req.flash('success','comp Added');
-        res.status(200).send("New COmpetition Added Successfully");
+        res.status(200).send("New Competition Added Successfully");
       }
     });
 });
@@ -125,11 +142,8 @@ router.delete('/:id', function(req, res){
 router.get('/:id', function(req, res){
   Comp.findById(req.params.id, function(err, comp){
     User.findById(comp.organiser, function(err, user){
-      res.render('comp', {
-        comp:comp,
-        organiser: user.name
-      });
-    });
+      res.status(200).send({comp : comp,organizer:user})
+    });                                                                                          
   });
 });
 
